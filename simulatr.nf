@@ -55,13 +55,15 @@ process run_methods {
 Collate results
 ***************/
 process collate_results {
+  publishDir "$baseDir/results"
+
   input:
-  file 'raw_data' from raw_results_ch
+  file 'raw_data' from raw_results_ch.collect()
 
   output:
   file 'result.rds' into collated_results_ch
 
   """
-  Rscript $PWD/Rscripts/
+  Rscript $PWD/Rscripts/collate_results.R result.rds raw_data*
   """
 }
