@@ -7,9 +7,9 @@ generate_lm_data <- function(beta_0, beta_1, sigma, n) {
   data.frame(y = y, x = x)
 }
 
-data_generator <- simulatr_function( f = generate_lm_data,
-                                     arg_names = c("beta_0", "beta_1", "sigma", "n"),
-                                     loop = TRUE)
+data_generator <- simulatr_function(f = generate_lm_data,
+                                    arg_names = c("beta_0", "beta_1", "sigma", "n"),
+                                    loop = TRUE)
 
 fit_lm <- function(df) {
   fit <- lm(y ~ x, data = df)
@@ -33,8 +33,8 @@ silly_competitor <- function(df, sigma) {
 }
 competitor <- simulatr_function(f = silly_competitor, arg_names = "sigma", loop = TRUE)
 
-parameter_grid <- expand.grid(beta_0 = seq(-2, 2, 1), beta_1 = seq(-2, 2, 1))
-fixed_parameters <- list(n = 1000, sigma = 1, n_cores = 2, seed = 4, B = 100)
+parameter_grid <- expand.grid(beta_0 = seq(-2, 2, 2), beta_1 = seq(-2, 2, 2))
+fixed_parameters <- list(n = 100, sigma = 1, n_processors = 2, seed = 4, B = 100)
 
 simulatr_specifier_object <- simulatr_specifier(
   parameter_grid = parameter_grid,

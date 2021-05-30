@@ -16,7 +16,6 @@ for (line : all_lines) {
     }
     meta_params[key] = value
 }
-println meta_params
 
 /*************
 Generate data
@@ -28,9 +27,41 @@ process generate_data {
   val i from param_idx_ch
 
   output:
-  file 'data_list.rds' into data_ch
+  file 'data_list_*.rds' into data_ch
 
   """
-  Rscript $PWD/Rscripts/generate_data.R $params.simulatr_obj i data_list.rds
+  Rscript $PWD/Rscripts/generate_data.R $params.simulatr_obj $i data_list_
+  """
+}
+
+/**********
+Run methods
+***********/
+method_ch = Channel.of(meta_params["method_names"])
+method_times_data_ch = method_ch.combine(data_ch.flatten())
+process run_methods {
+  input:
+  tuple val(method), file('data_list.rds') from method_times_data_ch
+
+  output:
+  file 'raw_result.rds' into raw_results_ch
+
+  """
+  Rscript $PWD/Rscripts/run_methods.R $params.simulatr_obj data_list.rds $method raw_result.rds
+  """
+}
+
+/**************
+Collate results
+***************/
+process collate_results {
+  input:
+  file 'raw_data' from raw_results_ch
+
+  output:
+  file 'result.rds' into collated_results_ch
+
+  """
+  Rscript $PWD/Rscripts/
   """
 }

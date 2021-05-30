@@ -1,3 +1,2 @@
-n_param_settings:25
-n_cores:2
+n_param_settings:9
 method_names:lm-silly

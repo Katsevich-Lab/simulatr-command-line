@@ -3,7 +3,7 @@ args <- commandArgs(trailingOnly = TRUE)
 library(simulatr)
 simulatr_spec <- readRDS(args[1])
 row_idx <- as.integer(args[2])
-save_fp <- args[3]
+base_fp <- args[3]
 
 # load extra packages (if necessary)
 data_generator <- simulatr_spec@generate_data_function
@@ -26,6 +26,13 @@ if (data_generator@loop) {
   data_list <- do.call(data_generator@f, ordered_args)
 }
 
-# split the data_list into n_cores equally sized chunks (for later)
-# save the data_list
-saveRDS(data_list, save_fp)
+# split data_list into n_processors equally sized chunks
+n_processors <- get_param_from_simulatr_spec(simulatr_spec, row_idx, "n_processors")
+cuts <- cut(seq(1, length(data_list)), n_processors)
+l_cuts <- levels(cuts)
+for (i in seq(1, n_processors)) {
+  to_save_data <- data_list[cuts == l_cuts[i]]
+  to_save_object <- list(data_list = to_save_data, row_idx = row_idx, proc_id = i)
+  to_save_fp <- paste0(base_fp, i, ".rds")
+  saveRDS(to_save_object, to_save_fp)
+}
