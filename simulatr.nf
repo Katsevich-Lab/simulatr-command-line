@@ -1,6 +1,6 @@
 // define pipline input parameters
-params.simulatr_obj = "~/research_code/simulatr-project/ex_sim_obj.rds"
-// params.metaparams_fp = ""
+// params.simulatr_obj = "~/research_code/simulatr-project/ex_sim_obj.rds"
+// params.metaparams_fp
 
 // Call bash command to create "metaparams.txt" file and save to PWD
 // "Rscript $PWD/Rscripts/get_meta_params.R $params.simulatr_obj $projectDir/metaparams.txt"
