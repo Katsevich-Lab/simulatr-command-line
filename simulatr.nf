@@ -1,13 +1,11 @@
-// define pipline input parameters
-// params.simulatr_obj = "~/research_code/simulatr-project/ex_sim_obj.rds"
-// params.metaparams_fp
-
-// Call bash command to create "metaparams.txt" file and save to PWD
-// "Rscript $PWD/Rscripts/get_meta_params.R $params.simulatr_obj $projectDir/metaparams.txt"
+// params.sim_obj_fp
+// params.metaparam_file
+// params.B
+// params.result_dir
 
 // Load metaparams.txt, and put these values into a map
 meta_params = [:]
-my_file = file("metaparams.txt")
+my_file = file(params.metaparam_file)
 all_lines = my_file.readLines()
 for (line : all_lines) {
     str_split = line.split(':')
@@ -31,7 +29,7 @@ process generate_data {
   file 'data_list_*.rds' into data_ch
 
   """
-  Rscript $PWD/bin/generate_data.R $params.simulatr_obj $i data_list_
+  Rscript $PWD/bin/generate_data.R $params.sim_obj_fp $i $params.B data_list_
   """
 }
 
@@ -46,13 +44,13 @@ process run_methods {
   file 'raw_result.rds' into raw_results_ch
 
   """
-  Rscript $PWD/bin/run_methods.R $params.simulatr_obj data_list.rds $method raw_result.rds
+  Rscript $PWD/bin/run_methods.R $params.sim_obj_fp data_list.rds $method $params.B raw_result.rds
   """
 }
 
 // Collate results
 process collate_results {
-  publishDir "$baseDir/results"
+  publishDir params.result_dir, mode: 'copy'
 
   input:
   file 'raw_data' from raw_results_ch.collect()

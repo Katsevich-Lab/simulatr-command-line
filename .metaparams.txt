@@ -1,2 +1,0 @@
-n_param_settings:9
-method_names:lm-silly
