@@ -44,7 +44,10 @@ convert_to_factor <- c(c("run_id", "proc_id", "grid_row_id", "method", "id"),
 out <- result_df %>% mutate(proc_id = proc_id,
                      grid_row_id = row_idx,
                      method = method,
-                     id = paste0(method, "-", row_idx, "-", proc_id, "-", as.integer(run_id))) %>%
+                     id = paste0(method, "-",
+                                 row_idx, "-",
+                                 proc_id, "-",
+                                 as.integer(run_id))) %>%
   mutate_at(convert_to_factor, factor)
 
 # save result
