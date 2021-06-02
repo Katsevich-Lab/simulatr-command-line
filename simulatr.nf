@@ -2,6 +2,7 @@
 // params.metaparam_file
 // params.B
 // params.result_dir
+// params.code_dir
 
 // Load metaparams.txt, and put these values into a map
 meta_params = [:]
@@ -29,7 +30,7 @@ process generate_data {
   file 'data_list_*.rds' into data_ch
 
   """
-  Rscript $PWD/bin/generate_data.R $params.sim_obj_fp $i $params.B data_list_
+  Rscript $projectDir/bin/generate_data.R $params.sim_obj_fp $i $params.B data_list_
   """
 }
 
@@ -44,7 +45,7 @@ process run_methods {
   file 'raw_result.rds' into raw_results_ch
 
   """
-  Rscript $PWD/bin/run_methods.R $params.sim_obj_fp data_list.rds $method $params.B raw_result.rds
+  Rscript $projectDir/bin/run_methods.R $params.sim_obj_fp data_list.rds $method $params.B raw_result.rds
   """
 }
 
@@ -59,6 +60,6 @@ process collate_results {
   file 'result.rds' into collated_results_ch
 
   """
-  Rscript $PWD/bin/collate_results.R result.rds raw_data*
+  Rscript $projectDir/bin/collate_results.R result.rds raw_data*
   """
 }
