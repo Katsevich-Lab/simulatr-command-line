@@ -2,7 +2,7 @@
 // params.metaparam_file
 // params.B
 // params.result_dir
-// params.code_dir
+// params.base_result_name
 
 // Load metaparams.txt, and put these values into a map
 meta_params = [:]
@@ -57,9 +57,9 @@ process collate_results {
   file 'raw_data' from raw_results_ch.collect()
 
   output:
-  file 'result.rds' into collated_results_ch
+  file params.base_result_name into collated_results_ch
 
   """
-  Rscript $projectDir/bin/collate_results.R result.rds raw_data*
+  Rscript $projectDir/bin/collate_results.R $params.base_result_name raw_data*
   """
 }
