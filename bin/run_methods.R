@@ -21,6 +21,7 @@ ordered_args <- c(list(NA), out$ordered_args)
 
 # call the method; either loop or pass entire data list
 data_list <- data_list_obj[["data_list"]]
+# activate sink here; method-row_idx-proc_idx.Rout
 if (method_object@loop) {
   result_list <- lapply(seq(1, length(data_list)), function(i) {
     curr_df <- data_list[[i]]
@@ -34,6 +35,7 @@ if (method_object@loop) {
   ordered_args[[1]] <- data_list
   result_df <- do.call(method_object@f, ordered_args)
 }
+# deactivate sink here
 
 library(dplyr)
 # add the IDs, convert to factors

@@ -17,6 +17,7 @@
 
 # Set code directory of nextflow and bin scripts.
 code_dir=$(dirname $0)
+echo Executable located in directory $code_dir.
 
 # Get command line args.
 while getopts ":f:r:B:b:" flag; do
@@ -29,11 +30,13 @@ while getopts ":f:r:B:b:" flag; do
   esac
 done
 
+# The following tries to convert sim_obj_fp to its full file path name;
+# when commented out, the user should provide the full file path to sim_obj_fp.
 # Convert sim_obj to its full file path name (for safety).
-get_abs_filename() {
-  echo "$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
-}
-sim_obj_fp=$(get_abs_filename $sim_obj_fp)
+# get_abs_filename() {
+#  echo "$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
+# }
+# sim_obj_fp=$(get_abs_filename $sim_obj_fp)
 
 # Print the arguments for user.
 printf "\nSupplied arguments:\n"
