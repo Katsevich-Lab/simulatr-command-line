@@ -88,6 +88,8 @@ process run_methods {
 
 // 4. Collate results
 process collate_results {
+  time "60s"
+
   publishDir params.result_dir, mode: 'copy'
 
   input:
