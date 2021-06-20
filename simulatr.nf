@@ -4,42 +4,78 @@
 // params.result_dir
 // params.base_result_name
 
-// Load metaparams.txt, and put these values into a map
+/*********************
+PIPELINE PREPROCESSING
+**********************/
+// 1. Load metaparams.txt, and put the values into a map
 meta_params = [:]
 my_file = file(params.metaparam_file)
 all_lines = my_file.readLines()
 for (line : all_lines) {
     str_split = line.split(':')
     key = str_split[0]
-    if (key == "method_names") {
-      value = str_split[1].split('-')
+    value = str_split[1]
+    if (value.contains('-')) {
+      meta_params[key] = value.split('-')
     } else {
-      value = str_split[1]
+      meta_params[key] = [value]
     }
-    meta_params[key] = value
 }
 
-// Generate data
-n_param_settings = meta_params["n_param_settings"].toInteger()
-param_idx_ch = Channel.of(1..n_param_settings)
+// 2. Replicate the wall times (if necessary) so that all arrays are length n_param_settings
+n_param_settings = meta_params["n_param_settings"][0].toInteger()
+def rep_array(n_param_settings, arr) {
+  return (1..(n_param_settings)).collect { arr[0] }
+}
+if (meta_params["data_generator"].size() == 1) {
+  meta_params["data_generator"] = rep_array(n_param_settings, meta_params["data_generator"])
+}
+meta_params["method_names"].each {
+if (meta_params[it].size() == 1) {
+  meta_params[it] = rep_array(n_param_settings, meta_params[it])
+  }
+}
+
+// 1. Generate data
+param_idx = (1..(n_param_settings)).collect{ [it, meta_params["data_generator"][it - 1]] }
+param_idx_ch = Channel.fromList(param_idx)
 process generate_data {
+  time "${wall_time}s"
+
   input:
-  val i from param_idx_ch
+  tuple val(i), val(wall_time) from param_idx_ch
 
   output:
-  file 'data_list_*.rds' into data_ch
+  tuple val(i), file('data_list_*.rds') into data_ch
 
   """
   Rscript $projectDir/bin/generate_data.R $params.sim_obj_fp $i $params.B data_list_
   """
 }
 
-// Run methods
-method_ch = Channel.of(meta_params["method_names"])
-method_times_data_ch = method_ch.combine(data_ch.flatten())
+// 2. Create methods chanel
+def my_spread(l) {
+  key = l[0]
+  vals = l[1]
+  return vals.collect {[ key, it ]}
+}
+def time_lookup(l, metaparams) {
+  method_name = l[0]
+  i = l[1]
+  return metaparams[method_name][i-1]
+}
+flat_data_ch = data_ch.flatMap{my_spread(it)}
+method_names_ch = Channel.of(meta_params["method_names"])
+method_cross_data_ch = method_names_ch.combine(flat_data_ch).map {
+                       it + time_lookup(it, meta_params)
+                       }
+
+// 3. Run methods
 process run_methods {
+  time "${wall_time}s"
+
   input:
-  tuple val(method), file('data_list.rds') from method_times_data_ch
+  tuple val(method), val(i), file('data_list.rds'), val(wall_time) from method_cross_data_ch
 
   output:
   file 'raw_result.rds' into raw_results_ch
@@ -49,7 +85,8 @@ process run_methods {
   """
 }
 
-// Collate results
+
+// 4. Collate results
 process collate_results {
   publishDir params.result_dir, mode: 'copy'
 

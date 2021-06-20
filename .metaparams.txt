@@ -1,0 +1,5 @@
+method_names:thresholding-em
+n_param_settings:5
+data_generator:32
+thresholding:31-31-31-31-31
+em:158-137-158-137-158
