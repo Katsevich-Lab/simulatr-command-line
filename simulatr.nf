@@ -73,6 +73,7 @@ method_cross_data_ch = method_names_ch.combine(flat_data_ch).map {
 // 3. Run methods
 process run_methods {
   time "${wall_time}s"
+  errorStrategy "ignore"
 
   input:
   tuple val(method), val(i), file('data_list.rds'), val(wall_time) from method_cross_data_ch
