@@ -24,6 +24,10 @@ if (data_generator@loop) {
 
 # split data_list into n_processors equally sized chunks
 n_processors <- get_param_from_simulatr_spec(simulatr_spec, row_idx, "n_processors")
+if (n_processors > length(data_list)) {
+  stop(paste0("n_processors (", n_processors, ") is greater than B (", length(data_list)), "). Decrease n_processors or increase B and try again.")
+}
+
 cuts <- cut(seq(1, length(data_list)), n_processors)
 l_cuts <- levels(cuts)
 for (i in seq(1, n_processors)) {
