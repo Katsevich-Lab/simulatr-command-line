@@ -21,36 +21,27 @@ ordered_args <- c(list(NA), out$ordered_args)
 
 # call the method; either loop or pass entire data list
 data_list <- data_list_obj[["data_list"]]
-# activate sink here; method-row_idx-proc_idx.Rout
+
 if (method_object@loop) {
-  result_list <- lapply(seq(1, length(data_list)), function(i) {
+  result_list <- vector(mode = "list", length = length(data_list))
+  for (i in seq(1, length(data_list))) {
     curr_df <- data_list[[i]]
     ordered_args[[1]] <- curr_df
     out <- do.call(method_object@f, ordered_args)
     out$run_id <- i
-    return(out)
-  })
+    result_list[[i]] <- out
+    if (i %% 25 == 0) { # save intermediate result in case computation fails
+      result_df <- do.call(rbind, result_list[seq(1, i)])
+      to_save <- collate_result_list(result_df, proc_id, row_idx, method)
+      saveRDS(to_save, raw_result_fp)
+    }
+  }
   result_df <- do.call(rbind, result_list)
 } else {
   ordered_args[[1]] <- data_list
   result_df <- do.call(method_object@f, ordered_args)
 }
-# deactivate sink here
 
-library(dplyr)
-# add the IDs, convert to factors
-colnames_result_df <- colnames(result_df)
-convert_to_factor <- c(c("run_id", "proc_id", "grid_row_id", "method", "id"),
-                       if ("parameter" %in% colnames_result_df) "parameter" else NULL,
-                       if ("target" %in% colnames_result_df) "target" else NULL)
-out <- result_df %>% mutate(proc_id = proc_id,
-                     grid_row_id = row_idx,
-                     method = method,
-                     id = paste0(method, "-",
-                                 row_idx, "-",
-                                 proc_id, "-",
-                                 as.integer(run_id))) %>%
-  mutate_at(convert_to_factor, factor)
-
+to_save <- collate_result_list(result_df, proc_id, row_idx, method)
 # save result
-saveRDS(out, raw_result_fp)
+saveRDS(to_save, raw_result_fp)

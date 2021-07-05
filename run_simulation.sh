@@ -17,7 +17,12 @@
 
 # Set code directory of nextflow and bin scripts.
 code_dir=$(dirname $0)
-echo Executable located in directory $code_dir.
+
+printf "\n***********************************\n"
+echo Running simulation in background...
+printf "***********************************\n\n"
+printf "Check simulatr.log to monitor progress. Stop execution via \"kill \$(cat .nextflow.pid)\".\n"
+# echo Executable located at $code_dir/run_simulation.sh
 
 # Get command line args.
 while getopts ":f:r:B:b:" flag; do
@@ -29,14 +34,6 @@ while getopts ":f:r:B:b:" flag; do
     \?) exit "Invalid option -$OPTARG; available arguments are -f, -B, and -r.";;
   esac
 done
-
-# The following tries to convert sim_obj_fp to its full file path name;
-# when commented out, the user should provide the full file path to sim_obj_fp.
-# Convert sim_obj to its full file path name (for safety).
-# get_abs_filename() {
-#  echo "$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
-# }
-# sim_obj_fp=$(get_abs_filename $sim_obj_fp)
 
 # Print the arguments for user.
 printf "\nSupplied arguments:\n"
@@ -70,12 +67,8 @@ then
 fi
 
 # Obtain the metaparam_file and save to .metaparams.txt.
-metaparam_file=".metaparams.txt"
+metaparam_file=$PWD/".metaparams.txt"
 Rscript $code_dir"/bin/get_meta_params.R" $sim_obj_fp $metaparam_file $B
 
 # run nextflow script
-nextflow $code_dir/"simulatr.nf" --sim_obj_fp $sim_obj_fp --metaparam_file $metaparam_file --B $B --result_dir $result_dir --base_result_name $base_result_name
-
-# Clean up by deleting created metaparam file and .nextflow files
-rm $metaparam_file
-rm -r .nextflow*
+nextflow $code_dir/"simulatr.nf" --sim_obj_fp $sim_obj_fp --metaparam_file $metaparam_file --B $B --result_dir $result_dir --base_result_name $base_result_name -bg > $PWD/simulatr.log -ansi-log false

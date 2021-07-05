@@ -22,6 +22,7 @@ for (line : all_lines) {
     }
 }
 
+
 // 2. Replicate the wall times (if necessary) so that all arrays are length n_param_settings
 n_param_settings = meta_params["n_param_settings"][0].toInteger()
 def rep_array(n_param_settings, arr) {
@@ -69,6 +70,9 @@ method_names_ch = Channel.of(meta_params["method_names"])
 method_cross_data_ch = method_names_ch.combine(flat_data_ch).map {
                        it + time_lookup(it, meta_params)
                        }
+method_cross_data_ch.into{method_cross_data_ch_use; method_cross_data_ch_display}
+method_cross_data_ch_display.count().view{num -> "**********\nNumber of methods processes: $num \n**********"}
+
 
 // 3. Run methods
 process run_methods {
@@ -76,7 +80,7 @@ process run_methods {
   errorStrategy "ignore"
 
   input:
-  tuple val(method), val(i), file('data_list.rds'), val(wall_time) from method_cross_data_ch
+  tuple val(method), val(i), file('data_list.rds'), val(wall_time) from method_cross_data_ch_use
 
   output:
   file 'raw_result.rds' into raw_results_ch
@@ -90,8 +94,7 @@ process run_methods {
 // 4. Collate results
 process collate_results {
   time "60s"
-
-  publishDir params.result_dir, mode: 'copy'
+  publishDir params.result_dir, mode: "copy"
 
   input:
   file 'raw_data' from raw_results_ch.collect()
@@ -101,5 +104,16 @@ process collate_results {
 
   """
   Rscript $projectDir/bin/collate_results.R $params.base_result_name raw_data*
+  """
+}
+
+
+// 5. Finally, clean up
+process cleanup {
+  input:
+  file params.base_result_name from collated_results_ch
+
+  """
+  rm $params.metaparam_file; rm -rf $PWD/.nextflow*
   """
 }
