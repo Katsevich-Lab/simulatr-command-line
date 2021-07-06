@@ -42,6 +42,7 @@ param_idx = (1..(n_param_settings)).collect{ [it, meta_params["data_generator"][
 param_idx_ch = Channel.fromList(param_idx)
 process generate_data {
   time "${wall_time}s"
+  tag "grid row: $i"
 
   input:
   tuple val(i), val(wall_time) from param_idx_ch
@@ -71,13 +72,14 @@ method_cross_data_ch = method_names_ch.combine(flat_data_ch).map {
                        it + time_lookup(it, meta_params)
                        }
 method_cross_data_ch.into{method_cross_data_ch_use; method_cross_data_ch_display}
-method_cross_data_ch_display.count().view{num -> "**********\nNumber of methods processes: $num \n**********"}
+method_cross_data_ch_display.count().view{num -> "**********\nNumber of method processes: $num \n**********"}
 
 
 // 3. Run methods
 process run_methods {
   time "${wall_time}s"
   errorStrategy "ignore"
+  tag "method: $method; grid row: $i"
 
   input:
   tuple val(method), val(i), file('data_list.rds'), val(wall_time) from method_cross_data_ch_use
