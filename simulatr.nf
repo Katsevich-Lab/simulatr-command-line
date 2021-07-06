@@ -42,6 +42,7 @@ param_idx = (1..(n_param_settings)).collect{ [it, meta_params["data_generator"][
 param_idx_ch = Channel.fromList(param_idx)
 process generate_data {
   time "${wall_time}s"
+  errorStrategy "ignore"
   tag "grid row: $i"
 
   input:
@@ -112,6 +113,8 @@ process collate_results {
 
 // 5. Finally, clean up
 process cleanup {
+  time "10s"
+
   input:
   file params.base_result_name from collated_results_ch
 
