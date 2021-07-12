@@ -94,26 +94,30 @@ process run_methods {
 }
 
 
-// 4. Collate results
+// 4. Collate results; print all files being loaded.
+raw_results_ch_collect = raw_results_ch.collect()
+raw_results_ch_collect.into{raw_results_ch_collect_use; raw_results_ch_collect_display}
+raw_results_ch_collect_display.view{fps -> "\nCombining the following files:\n$fps" }
 process collate_results {
-  time "60s"
+  time { 10.m * task.attempt * task.attempt }
+  errorStrategy 'retry'
+  maxRetries 3
   publishDir params.result_dir, mode: "copy"
 
   input:
-  file 'raw_data' from raw_results_ch.collect()
+  file 'raw_result' from raw_results_ch_collect_use
 
   output:
   file params.base_result_name into collated_results_ch
 
   """
-  Rscript $projectDir/bin/collate_results.R $params.base_result_name raw_data*
+  Rscript $projectDir/bin/collate_results.R $params.base_result_name raw_result*
   """
 }
 
-
 // 5. Finally, clean up
 process cleanup {
-  time "10s"
+  time "60s"
 
   input:
   file params.base_result_name from collated_results_ch
