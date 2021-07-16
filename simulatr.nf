@@ -81,6 +81,7 @@ process run_methods {
   time "${wall_time}s"
   errorStrategy "ignore"
   tag "method: $method; grid row: $i"
+  echo true
 
   input:
   tuple val(method), val(i), file('data_list.rds'), val(wall_time) from method_cross_data_ch_use
