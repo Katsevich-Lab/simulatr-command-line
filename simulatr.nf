@@ -41,6 +41,7 @@ if (meta_params[it].size() == 1) {
 param_idx = (1..(n_param_settings)).collect{ [it, meta_params["data_generator"][it - 1]] }
 param_idx_ch = Channel.fromList(param_idx)
 process generate_data {
+  echo true
   time "${wall_time}s"
   errorStrategy "ignore"
   tag "grid row: $i"
@@ -78,8 +79,11 @@ method_cross_data_ch_display.count().view{num -> "**********\nNumber of method p
 
 // 3. Run methods
 process run_methods {
-  time "${wall_time}s"
-  errorStrategy "ignore"
+  echo true
+  // time "${wall_time}s"
+  errorStrategy  { task.attempt <= 4  ? 'retry' : 'finish' }
+  time {1.s * wall_time.toInteger() * task.attempt }
+
   tag "method: $method; grid row: $i"
   echo true
 
@@ -100,6 +104,7 @@ raw_results_ch_collect = raw_results_ch.collect()
 raw_results_ch_collect.into{raw_results_ch_collect_use; raw_results_ch_collect_display}
 raw_results_ch_collect_display.view{fps -> "\nCombining the following files:\n$fps" }
 process collate_results {
+  echo true
   time { 10.m * task.attempt * task.attempt }
   errorStrategy 'retry'
   maxRetries 3
@@ -118,6 +123,7 @@ process collate_results {
 
 // 5. Finally, clean up
 process cleanup {
+  echo true
   time "60s"
 
   input:
