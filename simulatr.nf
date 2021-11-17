@@ -42,7 +42,7 @@ param_idx = (1..(n_param_settings)).collect{ [it, meta_params["data_generator"][
 param_idx_ch = Channel.fromList(param_idx)
 process generate_data {
   errorStrategy  { task.attempt <= 4  ? 'retry' : 'finish' }
-  time {1.s * wall_time.toInteger() * task.attempt}
+  // time {1.s * wall_time.toInteger() * task.attempt}
 
   echo true
   tag "grid row: $i"
@@ -81,8 +81,8 @@ method_cross_data_ch_display.count().view{num -> "**********\nNumber of method p
 // 3. Run methods
 process run_methods {
   echo true
-  errorStrategy  { task.attempt <= 4  ? 'retry' : 'finish' }
-  time {1.s * wall_time.toInteger() * task.attempt}
+  errorStrategy  { task.attempt <= 4  ? 'retry' : 'ignore' }
+  // time {1.s * wall_time.toInteger() * task.attempt}
 
   tag "method: $method; grid row: $i"
   echo true
@@ -105,9 +105,8 @@ raw_results_ch_collect.into{raw_results_ch_collect_use; raw_results_ch_collect_d
 raw_results_ch_collect_display.view{fps -> "\nCombining the following files:\n$fps" }
 process collate_results {
   echo true
-  time { 10.m * task.attempt * task.attempt }
-  errorStrategy 'retry'
-  maxRetries 3
+  // time { 10.m * task.attempt * task.attempt }
+  errorStrategy  { task.attempt <= 4  ? 'retry' : 'ignore' }
   publishDir params.result_dir, mode: "copy"
 
   input:
@@ -122,6 +121,7 @@ process collate_results {
 }
 
 // 5. Finally, clean up
+/*
 process cleanup {
   echo true
   time "60s"
@@ -133,3 +133,4 @@ process cleanup {
   rm $params.metaparam_file; rm -rf $PWD/.nextflow*
   """
 }
+*/
