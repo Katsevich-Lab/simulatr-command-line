@@ -41,9 +41,10 @@ if (meta_params[it].size() == 1) {
 param_idx = (1..(n_param_settings)).collect{ [it, meta_params["data_generator"][it - 1]] }
 param_idx_ch = Channel.fromList(param_idx)
 process generate_data {
+  errorStrategy  { task.attempt <= 4  ? 'retry' : 'finish' }
+  time {1.s * wall_time.toInteger() * task.attempt}
+
   echo true
-  time "${wall_time}s"
-  errorStrategy "ignore"
   tag "grid row: $i"
 
   input:
@@ -80,9 +81,8 @@ method_cross_data_ch_display.count().view{num -> "**********\nNumber of method p
 // 3. Run methods
 process run_methods {
   echo true
-  // time "${wall_time}s"
   errorStrategy  { task.attempt <= 4  ? 'retry' : 'finish' }
-  time {1.s * wall_time.toInteger() * task.attempt }
+  time {1.s * wall_time.toInteger() * task.attempt}
 
   tag "method: $method; grid row: $i"
   echo true
