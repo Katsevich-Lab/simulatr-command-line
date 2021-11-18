@@ -41,7 +41,7 @@ if (meta_params[it].size() == 1) {
 param_idx = (1..(n_param_settings)).collect{ [it, meta_params["data_generator"][it - 1]] }
 param_idx_ch = Channel.fromList(param_idx)
 process generate_data {
-  errorStrategy  { task.attempt <= 4  ? 'retry' : 'finish' }
+  errorStrategy  { task.attempt <= 2  ? 'retry' : 'finish' }
   // time {1.s * wall_time.toInteger() * task.attempt}
 
   echo true
@@ -81,7 +81,7 @@ method_cross_data_ch_display.count().view{num -> "**********\nNumber of method p
 // 3. Run methods
 process run_methods {
   echo true
-  errorStrategy  { task.attempt <= 4  ? 'retry' : 'ignore' }
+  errorStrategy  { task.attempt <= 2  ? 'retry' : 'ignore' }
   // time {1.s * wall_time.toInteger() * task.attempt}
 
   tag "method: $method; grid row: $i"
@@ -106,7 +106,7 @@ raw_results_ch_collect_display.view{fps -> "\nCombining the following files:\n$f
 process collate_results {
   echo true
   // time { 10.m * task.attempt * task.attempt }
-  errorStrategy  { task.attempt <= 4  ? 'retry' : 'ignore' }
+  errorStrategy  { task.attempt <= 2  ? 'retry' : 'ignore' }
   publishDir params.result_dir, mode: "copy"
 
   input:
