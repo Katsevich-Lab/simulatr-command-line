@@ -74,4 +74,4 @@ metaparam_file=$PWD/".metaparams.txt"
 Rscript $code_dir"/bin/get_meta_params.R" $sim_obj_fp $metaparam_file $B
 
 # run nextflow script
-nextflow $code_dir/"simulatr.nf" --sim_obj_fp $sim_obj_fp --metaparam_file $metaparam_file --B $B --result_dir $result_dir --base_result_name $base_result_name -bg > $PWD/simulatr.log -ansi-log false -with-trace
+nextflow $code_dir/"simulatr.nf" --sim_obj_fp $sim_obj_fp --metaparam_file $metaparam_file --B $B --result_dir $result_dir --base_result_name $base_result_name > $PWD/simulatr.log -ansi-log false -with-trace
