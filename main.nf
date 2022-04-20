@@ -53,8 +53,6 @@ process generate_data {
   output:
   tuple val(i), file('data_list_*.rds') into data_ch
 
-  module 'R/R-4.1.2'
-
   """
   Rscript $projectDir/bin/generate_data.R $params.sim_obj_fp $i $params.B data_list_
   """
@@ -95,8 +93,6 @@ process run_methods {
   output:
   file 'raw_result.rds' into raw_results_ch
 
-  module 'R/R-4.1.2'
-
   """
   Rscript $projectDir/bin/run_methods.R $params.sim_obj_fp data_list.rds $method $params.B raw_result.rds
   """
@@ -118,8 +114,6 @@ process collate_results {
 
   output:
   file params.base_result_name into collated_results_ch
-
-  module 'R/R-4.1.2'
 
   """
   Rscript $projectDir/bin/collate_results.R $params.base_result_name raw_result*
