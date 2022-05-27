@@ -41,9 +41,10 @@ if (meta_params[it].size() == 1) {
 param_idx = (1..(n_param_settings)).collect{ [it, meta_params["data_generator"][it - 1]] }
 param_idx_ch = Channel.fromList(param_idx)
 process generate_data {
-  clusterOptions "-l m_mem_free=${task.attempt * 15}G -o \$HOME/output/\'\$JOB_NAME-\$JOB_ID-\$TASK_ID.log\' "
+  clusterOptions "-l m_mem_free=${task.attempt * 5}G -o \$HOME/output/\'\$JOB_NAME-\$JOB_ID-\$TASK_ID.log\' "
   errorStrategy { task.exitStatus == 137 ? 'retry' : 'terminate' }
   maxRetries 2
+  // time {1.s * wall_time.toInteger() * task.attempt}
 
   echo true
   tag "grid row: $i"
@@ -82,10 +83,10 @@ method_cross_data_ch_display.count().view{num -> "**********\nNumber of method p
 // 3. Run methods
 process run_methods {
   echo true
-  clusterOptions "-l m_mem_free=5G -o \$HOME/output/\'\$JOB_NAME-\$JOB_ID-\$TASK_ID.log\'"
-  // + "${if (task.attempt == 1) " -q short.q" else ""}"
+  clusterOptions "-l m_mem_free=${task.attempt * 5}G -o \$HOME/output/\'\$JOB_NAME-\$JOB_ID-\$TASK_ID.log\' "
   errorStrategy { task.exitStatus == 137 ? 'retry' : 'terminate' }
-  maxRetries 1
+  maxRetries 2
+  // time {1.s * wall_time.toInteger() * task.attempt}
 
   tag "method: $method; grid row: $i"
   echo true
