@@ -83,7 +83,7 @@ method_cross_data_ch_display.count().view{num -> "**********\nNumber of method p
 // 3. Run methods
 process run_methods {
   echo true
-  clusterOptions "-l m_mem_free=5G -o \$HOME/output/\'\$JOB_NAME-\$JOB_ID-\$TASK_ID.log\'" + "${if (task.attempt == 1) "-q short.q" else ""}"
+  clusterOptions "${if (task.attempt == 1) "-q short.q" else ""}" + "-l m_mem_free=5G -o \$HOME/output/\'\$JOB_NAME-\$JOB_ID-\$TASK_ID.log\'" 
   errorStrategy { task.exitStatus == 137 ? 'retry' : 'terminate' }
   maxRetries 1
 
