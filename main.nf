@@ -2,6 +2,8 @@
 params.result_name_file_name = "simulatr_result.rds"
 params.B = 0
 
+println "$workflow.workDir"
+
 // First, obtain basic info, including method names and grid IDs
 process obtain_basic_info {
   input:
@@ -25,12 +27,13 @@ process generate_data {
   path simulatr_specifier_fp from params.simulatr_specifier_fp
 
   output:
-  tuple val(i), path('data_list_*.rds') into data_ch
+  tuple val(i), path('data_list_*') into data_ch
 
   """
   generate_data.R $simulatr_specifier_fp $i $params.B
   """
 }
+
 
 // Third, create the channel to pass to the methods process
 def my_spread(l) {
@@ -63,11 +66,25 @@ process combine_results {
 
   output:
   file "$params.result_file_name" into collected_results_ch
+  val "flag" into flag_ch
 
   input:
   file 'raw_result' from raw_results_ch.collect()
 
   """
   collect_results.R $params.result_file_name raw_result*
+  """
+}
+
+
+// Fifth, delete the data lists
+process delete_work_files {
+  echo true
+
+  input:
+  val "flag" from flag_ch
+
+  """
+  find $workflow.workDir -name "data_list_*" -delete
   """
 }

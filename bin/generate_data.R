@@ -29,6 +29,6 @@ l_cuts <- levels(cuts)
 for (i in seq(1, n_processors)) {
   to_save_data <- data_list[cuts == l_cuts[i]]
   to_save_object <- list(data_list = to_save_data, row_idx = row_idx, proc_id = i)
-  to_save_fp <- paste0("data_list_", i, ".rds")
+  to_save_fp <- paste0("data_list_", i)
   saveRDS(to_save_object, to_save_fp)
 }
